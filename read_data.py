@@ -14,7 +14,7 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
     games_df = games_df.drop(['MIN', 'VIDEO_AVAILABLE'], axis=1)
     games_df['WL'] = games_df['WL'] == 'W'
     games_df = games_df.rename(columns={'WL':'TEAM_WINS'})
-    games_df['TEAM_HOME'] = games_df['MATCHUP'].str.contains('vs.', regex=False)
+    games_df['TEAM_HOME'] = games_df['MATCHUP'].str.contains('vs.', regex=False)*1
     games_df['TEAM_GAME_NUMBER'] = 1
     games_df['TEAM_WINS'] *= 1
     games_df['TEAM_W_PCT'] = 0
@@ -136,6 +136,7 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
         games_df.loc[i, 'OPPONENT_PTS'] = games_df.loc[i-1, 'TEAM_PTS']
         games_df.loc[i, 'OPPONENT_ID'] = games_df.loc[i-1, 'TEAM_ID']
         games_df.loc[i, 'OPP_WINS'] = games_df.loc[i-1, 'TEAM_WINS']
+        games_df.loc[i, 'OPP_W_PCT'] = games_df.loc[i-1, 'TEAM_W_PCT']
         games_df.loc[i, 'OPP_FGM'] = games_df.loc[i-1, 'TEAM_FGM']
         games_df.loc[i, 'OPP_FGA'] = games_df.loc[i-1, 'TEAM_FGA']
         games_df.loc[i, 'OPP_FG_PCT'] = games_df.loc[i-1, 'TEAM_FG_PCT']
@@ -160,6 +161,7 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
         games_df.loc[i, 'OPPONENT_PTS'] = games_df.loc[i+1, 'TEAM_PTS']
         games_df.loc[i, 'OPPONENT_ID'] = games_df.loc[i+1, 'TEAM_ID']
         games_df.loc[i, 'OPP_WINS'] = games_df.loc[i+1, 'TEAM_WINS']
+        games_df.loc[i, 'OPP_W_PCT'] = games_df.loc[i+1, 'TEAM_W_PCT']
         games_df.loc[i, 'OPP_FGM'] = games_df.loc[i+1, 'TEAM_FGM']
         games_df.loc[i, 'OPP_FGA'] = games_df.loc[i+1, 'TEAM_FGA']
         games_df.loc[i, 'OPP_FG_PCT'] = games_df.loc[i+1, 'TEAM_FG_PCT']
@@ -182,104 +184,9 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
       
     df = pd.concat([df, games_df])
   
-  df = df.drop(columns=['PTS', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PLUS_MINUS'])
+  df = df.drop(columns=['PTS', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PLUS_MINUS', 'OPPONENT_PTS','OPP_WINS'])
 
   return df.reset_index(drop=True).sort_values(by=['SEASON_ID', 'TEAM_NAME', 'GAME_DATE'])
-
-def append_team_stats_before_game(df, last_n_games=10):
-  df['TEAM_W_PCT'] = np.nan
-  df['TEAM_FGM'] = np.nan
-  df['TEAM_FGA'] = np.nan
-  df['TEAM_FG_PCT'] = np.nan
-  df['TEAM_FG3M'] = np.nan
-  df['TEAM_FG3A'] = np.nan
-  df['TEAM_FG3_PCT'] = np.nan
-  df['TEAM_FTM'] = np.nan
-  df['TEAM_FTA'] = np.nan
-  df['TEAM_FT_PCT'] = np.nan
-  df['TEAM_OREB'] = np.nan
-  df['TEAM_DREB'] = np.nan
-  df['TEAM_REB'] = np.nan
-  df['TEAM_AST'] = np.nan
-  df['TEAM_TOV'] = np.nan
-  df['TEAM_STL'] = np.nan
-  df['TEAM_BLK'] = np.nan
-  df['TEAM_PF'] = np.nan
-  df['TEAM_PTS'] = np.nan
-  df['TEAM_PM'] = np.nan
-
-  df['OPP_W_PCT'] = np.nan
-  df['OPP_FGM'] = np.nan
-  df['OPP_FGA'] = np.nan
-  df['OPP_FG_PCT'] = np.nan
-  df['OPP_FG3M'] = np.nan
-  df['OPP_FG3A'] = np.nan
-  df['OPP_FG3_PCT'] = np.nan
-  df['OPP_FTM'] = np.nan
-  df['OPP_FTA'] = np.nan
-  df['OPP_FT_PCT'] = np.nan
-  df['OPP_OREB'] = np.nan
-  df['OPP_DREB'] = np.nan
-  df['OPP_REB'] = np.nan
-  df['OPP_AST'] = np.nan
-  df['OPP_TOV'] = np.nan
-  df['OPP_STL'] = np.nan
-  df['OPP_BLK'] = np.nan
-  df['OPP_PF'] = np.nan
-  df['OPP_PTS'] = np.nan
-  df['OPP_PM'] = np.nan
-
-  for i in range(len(df)):
-    stats = leaguedashteamstats.LeagueDashTeamStats(
-      last_n_games=last_n_games, 
-      date_to_nullable=df['GAME_DATE'][i]
-    )
-    stats_df = stats.get_data_frames()[0]
-    print(stats_df)
-
-    df.loc[i, 'TEAM_W_PCT'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['W_PCT']
-    df.loc[i, 'TEAM_FGM'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['FGM']
-    df.loc[i, 'TEAM_FGA'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['FGA']
-    df.loc[i, 'TEAM_FG_PCT'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['FG_PCT']
-    df.loc[i, 'TEAM_FG3M'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['FG3M']
-    df.loc[i, 'TEAM_FG3A'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['FG3A']
-    df.loc[i, 'TEAM_FG3_PCT'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['FG3_PCT']
-    df.loc[i, 'TEAM_FTM'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['FTM']
-    df.loc[i, 'TEAM_FTA'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['FTA']
-    df.loc[i, 'TEAM_FT_PCT'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['FT_PCT']
-    df.loc[i, 'TEAM_OREB'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['OREB']
-    df.loc[i, 'TEAM_DREB'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['DREB']
-    df.loc[i, 'TEAM_REB'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['REB']
-    df.loc[i, 'TEAM_AST'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['AST']
-    df.loc[i, 'TEAM_TOV'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['TOV']
-    df.loc[i, 'TEAM_STL'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['STL']
-    df.loc[i, 'TEAM_BLK'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['BLK']
-    df.loc[i, 'TEAM_PF'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['PF']
-    df.loc[i, 'TEAM_PTS'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['PTS']
-    df.loc[i, 'TEAM_PM'] = stats_df[stats_df['TEAM_NAME'] == df['TEAM_NAME'][i]]['PLUS_MINUS']
-
-    df.loc[i, 'OPP_W_PCT'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['W_PCT']
-    df.loc[i, 'OPP_FGM'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['FGM']
-    df.loc[i, 'OPP_FGA'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['FGA']
-    df.loc[i, 'OPP_FG_PCT'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['FG_PCT']
-    df.loc[i, 'OPP_FG3M'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['FG3M']
-    df.loc[i, 'OPP_FG3A'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['FG3A']
-    df.loc[i, 'OPP_FG3_PCT'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['FG3_PCT']
-    df.loc[i, 'OPP_FTM'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['FTM']
-    df.loc[i, 'OPP_FTA'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['FTA']
-    df.loc[i, 'OPP_FT_PCT'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['FT_PCT']
-    df.loc[i, 'OPP_OREB'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['OREB']
-    df.loc[i, 'OPP_DREB'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['DREB']
-    df.loc[i, 'OPP_REB'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['REB']
-    df.loc[i, 'OPP_AST'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['AST']
-    df.loc[i, 'OPP_TOV'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['TOV']
-    df.loc[i, 'OPP_STL'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['STL']
-    df.loc[i, 'OPP_BLK'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['BLK']
-    df.loc[i, 'OPP_PF'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['PF']
-    df.loc[i, 'OPP_PTS'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['PTS']
-    df.loc[i, 'OPP_PM'] = stats_df[stats_df['TEAM_NAME'] == df['OPPONENT_NAME'][i]]['PLUS_MINUS']
-  
-  return df
 
 games_df = get_games(start_year=2008)
 # games_df = append_team_stats_before_game(games_df)
