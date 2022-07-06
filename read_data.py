@@ -191,5 +191,6 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
 games_df = get_games(start_year=2008)
 # games_df = append_team_stats_before_game(games_df)
 games_df.to_excel('nba_games_2008_2022.xlsx')
+games_df.to_csv('nba_games_2008_2022.csv')
 
 
