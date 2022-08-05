@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from nba_api.stats.endpoints import leaguegamelog, leaguedashteamstats
+from nba_api.stats.endpoints import leaguegamelog, leaguedashplayerstats
 
 def transpose_df_to_dict(df):
   return df.T.to_dict().values()
@@ -69,8 +69,6 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
     for i in range(1, len(games_df)):
       if (games_df['TEAM_NAME'][i] == games_df['TEAM_NAME'][i-1]):
         games_df.loc[i, 'TEAM_GAME_NUMBER'] = games_df.loc[i-1, 'TEAM_GAME_NUMBER'] + 1
-
-              
 
         if games_df['TEAM_GAME_NUMBER'][i] <= last_n_games:
           games_df.loc[i, 'TEAM_W_PCT'] = games_df['TEAM_WINS'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
@@ -188,9 +186,35 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
 
   return df.reset_index(drop=True).sort_values(by=['SEASON_ID', 'TEAM_NAME', 'GAME_DATE'])
 
-games_df = get_games(start_year=2008)
+def get_year(season_id):
+  year_begin = season_id[1:]
+  year_end = str(int(season_id[1:]) + 1)[2:]
+
+  return year_begin + '-' + year_end
+
+def get_player_stats(df, last_n_games=10):
+  for i in range(len(df)):
+    season = get_year(df['SEASON_ID'].iloc[i])
+    player_stats = leaguedashplayerstats.LeagueDashPlayerStats(
+      season=season, 
+      date_to_nullable=df['GAME_DATE'].iloc[i],
+      per_mode_detailed='PerGame',
+      # last_n_games=last_n_games
+      )
+    player_stats_df = player_stats.get_data_frames()[0]
+    team_id = df['TEAM_ID'].iloc[i]
+    team_player_stats_df = player_stats_df[player_stats_df['TEAM_ID'] == team_id]
+    best_team_player_df = team_player_stats_df.sort_values(by=['PTS', 'AST', 'REB'], ascending=False)[:3]
+    if (i == 10):
+      print(best_team_player_df, best_team_player_df['PTS'])
+      
+print('getting games')
+games_df = get_games(start_year=2020)
 # games_df = append_team_stats_before_game(games_df)
-games_df.to_excel('nba_games_2008_2022.xlsx')
-games_df.to_csv('nba_games_2008_2022.csv')
+# games_df.to_excel('nba_games_2008_2022.xlsx')
+# games_df.to_csv('nba_games_2008_2022.csv')
+print('adding player stats')
+
+player_df = get_player_stats(df=games_df)
 
 

@@ -1,15 +1,13 @@
-import pandas as pd
-import numpy as np
-from nba_api.stats.endpoints import leaguedashteamstats, teamdashboardbylastngames
+from nba_api.stats.endpoints import boxscoreusagev2
 
+games = boxscoreusagev2.BoxScoreUsageV2(game_id='0020800004');
 
-gamedata = leaguedashteamstats.LeagueDashTeamStats(
-  last_n_games=10, 
-  season='2019-20', 
-  date_to_nullable='2020-02-01',
-  season_type_all_star='Regular Season'
-)
+games_df = games.get_data_frames()[0]
 
-df = gamedata.get_data_frames()[0]
-print(df)
-print(df[df['TEAM_NAME'] == 'Atlanta Hawks']['W_PCT'])
+print(games_df[games_df['PLAYER_NAME'] == 'Maurice Evans'], games_df[games_df['PLAYER_NAME'] == 'Trae Young'])
+
+if(not games_df[games_df['PLAYER_NAME'] == 'Maurice Evans'].empty): 
+  print('Maurice')
+
+if(not games_df[games_df['PLAYER_NAME'] == 'Trae Young'].empty):
+  print('Trae')
