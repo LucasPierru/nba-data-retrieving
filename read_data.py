@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from nba_api.stats.endpoints import leaguegamelog, leaguedashplayerstats
+from nba_api.stats.endpoints import leaguegamelog, leaguedashplayerstats, playergamelogs
 
 def transpose_df_to_dict(df):
   return df.T.to_dict().values()
