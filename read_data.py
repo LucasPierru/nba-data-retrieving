@@ -211,7 +211,6 @@ def get_team_current_players_stats(player_df, team_id, date, n_best_players=3):
   # game_df = df[df['GAME_ID'] == game_id]
   team_df = player_df[player_df['TEAM_ID'] == team_id]
   team_at_date_df = team_df[team_df['GAME_DATE'].astype(str).str[:10] <= date]
-  print(team_at_date_df)
   team_at_date_df = team_at_date_df.sort_values(by=['GAME_DATE', 'PLAYER_NAME'], ascending=False)
   team_at_date_df = team_at_date_df.drop_duplicates(subset=['PLAYER_NAME'], keep='first')
   team_at_date_df = team_at_date_df[team_at_date_df['PLAYER_MIN'] > 20]
@@ -361,7 +360,7 @@ def create_player_data(games_df, last_n_games):
 
   return games_df
 
-start_year = '2021'
+start_year = '2008'
 end_year = '2022'
 
 years = start_year + '-' + end_year
@@ -371,5 +370,3 @@ games_df = get_games(start_year=int(start_year))
 print('adding player stats')
 player_df = get_player_stats(df=games_df)
 player_df.to_excel(f'nba_games_{years}.xlsx')
-
-
