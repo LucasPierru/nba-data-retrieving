@@ -1,13 +1,13 @@
-from nba_api.stats.endpoints import boxscoreusagev2
+import pandas as pd
 
-games = boxscoreusagev2.BoxScoreUsageV2(game_id='0020800004');
+player_df = pd.read_excel('player_data_2021-22.xlsx')
 
-games_df = games.get_data_frames()[0]
+def get_team_best_players(df, game_id, team_id):
+  game_df = df[df['GAME_ID'] == game_id]
+  team_game_df = game_df[game_df['TEAM_ID'] == team_id]
 
-print(games_df[games_df['PLAYER_NAME'] == 'Maurice Evans'], games_df[games_df['PLAYER_NAME'] == 'Trae Young'])
+  print(team_game_df)
 
-if(not games_df[games_df['PLAYER_NAME'] == 'Maurice Evans'].empty): 
-  print('Maurice')
+get_team_best_players(player_df, 22100082, 1610612737)
 
-if(not games_df[games_df['PLAYER_NAME'] == 'Trae Young'].empty):
-  print('Trae')
+# print(player_df)
