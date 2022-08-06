@@ -24,7 +24,7 @@ def get_team_current_players_stats(player_df, team_id, date, n_best_players=3):
   team_at_date_df = team_df[team_df['GAME_DATE'] < date]
   team_at_date_df = team_at_date_df.sort_values(by=['GAME_DATE', 'PLAYER_NAME'], ascending=False)
   team_at_date_df = team_at_date_df.drop_duplicates(subset=['PLAYER_NAME'], keep='first')
-
+  team_at_date_df = team_at_date_df[team_at_date_df['PLAYER_MIN'] > 20]
   team_at_date_df = team_at_date_df.sort_values(by=['PLAYER_PER'], ascending=False)
   
   return team_at_date_df[:n_best_players]
@@ -35,9 +35,14 @@ def check_best_player_in_game(player_df, game_id, team_id):
 
   return team_df
 
-df = get_team_current_players_stats(player_df, 1610612737, '2021-12-03', 5)
+df = get_team_current_players_stats(player_df, 1610612737, '2021-11-24', 3)
 print(df)
 print(df['GAME_DATE'])
 
-df2 = check_best_player_in_game(player_df, 22100335, 1610612737)
+df2 = check_best_player_in_game(player_df, 22100277, 1610612737)
 print(df2)
+
+for i in range(len(df)):
+  player_name = df['PLAYER_NAME'].iloc[i]
+  if (player_name in df2['PLAYER_NAME'].values):
+    print(player_name, i + 1)

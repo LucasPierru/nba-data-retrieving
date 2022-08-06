@@ -1,6 +1,6 @@
 from nba_api.stats.endpoints import playergamelogs
 
-season = '2020-21'
+season = '2021-22'
 last_n_games = 15
 
 games = playergamelogs.PlayerGameLogs(season_nullable=season);
@@ -86,7 +86,7 @@ for i in range(1, len(games_df)):
       games_df.loc[i, 'PLAYER_MIN'] = games_df['MIN'].iloc[i-last_n_games:i].sum() / last_n_games
   else:
     games_df.loc[i, 'PLAYER_GAME_NUMBER'] = 1
-    team_index = i
+    player_index = i
 
   if (games_df.loc[i, 'PLAYER_FGA'] == 0):
           games_df.loc[i, 'PLAYER_FG_PCT'] = 0

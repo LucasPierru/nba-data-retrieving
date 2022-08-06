@@ -1,3 +1,4 @@
+from venv import create
 import pandas as pd
 import numpy as np
 from nba_api.stats.endpoints import leaguegamelog, leaguedashplayerstats, playergamelogs
@@ -192,29 +193,183 @@ def get_year(season_id):
 
   return year_begin + '-' + year_end
 
-def get_player_stats(df, last_n_games=10):
-  for i in range(len(df)):
-    season = get_year(df['SEASON_ID'].iloc[i])
-    player_stats = leaguedashplayerstats.LeagueDashPlayerStats(
-      season=season, 
-      date_to_nullable=df['GAME_DATE'].iloc[i],
-      per_mode_detailed='PerGame',
-      # last_n_games=last_n_games
-      )
-    player_stats_df = player_stats.get_data_frames()[0]
-    team_id = df['TEAM_ID'].iloc[i]
-    team_player_stats_df = player_stats_df[player_stats_df['TEAM_ID'] == team_id]
-    best_team_player_df = team_player_stats_df.sort_values(by=['PTS', 'AST', 'REB'], ascending=False)[:3]
-    if (i == 10):
-      print(best_team_player_df, best_team_player_df['PTS'])
-      
-print('getting games')
-games_df = get_games(start_year=2020)
-# games_df = append_team_stats_before_game(games_df)
-# games_df.to_excel('nba_games_2008_2022.xlsx')
-# games_df.to_csv('nba_games_2008_2022.csv')
-print('adding player stats')
+def get_team_current_players_stats(player_df, team_id, date, n_best_players=3):
+  """
+  Function that allows you to get the best nba players
+  of a team at a certain date with the player dataframe
+  you can also select a certain amount of players
 
+  Parameters:
+  - player_df: Players dataframe
+  - team_id: id of the team of which you want the best players
+  - date: the date at which you want the data
+  - n_best_players: the numbers of players you want
+
+  Return:
+  - A dataframe of the best players of selected team
+  """
+  # game_df = df[df['GAME_ID'] == game_id]
+  team_df = player_df[player_df['TEAM_ID'] == team_id]
+  team_at_date_df = team_df[team_df['GAME_DATE'].astype(str).str[:10] <= date]
+  print(team_at_date_df)
+  team_at_date_df = team_at_date_df.sort_values(by=['GAME_DATE', 'PLAYER_NAME'], ascending=False)
+  team_at_date_df = team_at_date_df.drop_duplicates(subset=['PLAYER_NAME'], keep='first')
+  team_at_date_df = team_at_date_df[team_at_date_df['PLAYER_MIN'] > 20]
+  team_at_date_df = team_at_date_df.sort_values(by=['PLAYER_PER'], ascending=False)
+  
+  return team_at_date_df[:n_best_players]
+
+def check_best_player_in_game(player_df, game_id, team_id):
+  game_df = player_df[player_df['GAME_ID'] == game_id]
+  team_df = game_df[game_df['TEAM_ID'] == team_id]
+
+  return team_df
+
+def get_player_stats(df):
+  season = 0
+  df['TEAM PLAYER 1'] = False
+  df['TEAM PLAYER 2'] = False
+  df['TEAM PLAYER 3'] = False
+
+  df['TEAM PLAYER NAME 1'] = ''
+  df['TEAM PLAYER NAME 2'] = ''
+  df['TEAM PLAYER NAME 3'] = ''
+
+  df = df.reset_index(drop=True)
+
+  for i in range(len(df)):
+    print(f'{i} out of {len(df)}')
+    if(season != get_year(df['SEASON_ID'].iloc[i])):
+      season = get_year(df['SEASON_ID'].iloc[i])
+      players = playergamelogs.PlayerGameLogs(season_nullable=season)
+      players_df = players.get_data_frames()[0]
+      players_df = create_player_data(players_df, 15)
+    team_id = df['TEAM_ID'].iloc[i]
+    game_date = df['GAME_DATE'].iloc[i]
+    game_id = df['GAME_ID'].iloc[i]
+    team_players_df = get_team_current_players_stats(players_df, team_id, game_date, 3)
+    team_game_players_df = check_best_player_in_game(players_df, game_id, team_id)
+
+    for j in range(len(team_players_df)):
+      player_name = team_players_df['PLAYER_NAME'].iloc[j]
+      df.loc[i, f'TEAM PLAYER NAME {j + 1}'] = player_name
+      if (player_name in team_game_players_df['PLAYER_NAME'].values):
+        df.loc[i, f'TEAM PLAYER {j + 1}'] = True
+  return df
+
+def create_player_data(games_df, last_n_games):
+  games_df = games_df.sort_values(by=['TEAM_NAME', 'PLAYER_NAME', 'GAME_DATE'])
+  games_df = games_df.reset_index(drop=True)
+
+  games_df['PLAYER_GAME_NUMBER'] = 1
+  games_df['WL'] = games_df['WL'] == 'W'
+  games_df = games_df.rename(columns={'WL':'PLAYER_WINS'})
+  games_df['PLAYER_WINS'] *= 1
+
+  games_df = games_df.drop(columns=['NBA_FANTASY_PTS', 'WNBA_FANTASY_PTS'])
+  games_df = games_df.drop(games_df.filter(regex='RANK').columns, axis=1)
+
+  games_df['PLAYER_W_PCT'] = 0
+  games_df['PLAYER_FGM'] = 0
+  games_df['PLAYER_FGA'] = 0
+  games_df['PLAYER_FG_PCT'] = 0
+  games_df['PLAYER_FG3M'] = 0
+  games_df['PLAYER_FG3A'] = 0
+  games_df['PLAYER_FG3_PCT'] = 0
+  games_df['PLAYER_FTM'] = 0
+  games_df['PLAYER_FTA'] = 0
+  games_df['PLAYER_FT_PCT'] = 0
+  games_df['PLAYER_OREB'] = 0
+  games_df['PLAYER_DREB'] = 0
+  games_df['PLAYER_REB'] = 0
+  games_df['PLAYER_AST'] = 0
+  games_df['PLAYER_TOV'] = 0
+  games_df['PLAYER_STL'] = 0
+  games_df['PLAYER_BLK'] = 0
+  games_df['PLAYER_PF'] = 0
+  games_df['PLAYER_PTS'] = 0
+  games_df['PLAYER_PM'] = 0
+  games_df['PLAYER_MIN'] = 0
+  games_df['PLAYER_PER'] = 0
+
+  player_index = 0
+
+  for i in range(1, len(games_df)):
+    if (games_df['PLAYER_NAME'][i] == games_df['PLAYER_NAME'][i-1]):
+      games_df.loc[i, 'PLAYER_GAME_NUMBER'] = games_df.loc[i-1, 'PLAYER_GAME_NUMBER'] + 1
+
+      if games_df['PLAYER_GAME_NUMBER'][i] <= last_n_games:
+        games_df.loc[i, 'PLAYER_W_PCT'] = games_df['PLAYER_WINS'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_FGM'] = games_df['FGM'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_FGA'] = games_df['FGA'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)          
+        games_df.loc[i, 'PLAYER_FG3M'] = games_df['FG3M'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_FG3A'] = games_df['FG3A'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_FTM'] = games_df['FTM'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_FTA'] = games_df['FTA'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_OREB'] = games_df['OREB'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_DREB'] = games_df['DREB'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_REB'] = games_df['REB'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_AST'] = games_df['AST'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_TOV'] = games_df['TOV'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_STL'] = games_df['STL'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_BLK'] = games_df['BLK'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_PF'] = games_df['PF'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_PTS'] = games_df['PTS'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_PM'] = games_df['PLUS_MINUS'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+        games_df.loc[i, 'PLAYER_MIN'] = games_df['MIN'].iloc[player_index:i].sum() / (games_df['PLAYER_GAME_NUMBER'][i] - 1)
+      else:
+        games_df.loc[i, 'PLAYER_W_PCT'] = games_df['PLAYER_WINS'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_FGM'] = games_df['FGM'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_FGA'] = games_df['FGA'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_FG3M'] = games_df['FG3M'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_FG3A'] = games_df['FG3A'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_FTM'] = games_df['FTM'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_FTA'] = games_df['FTA'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_OREB'] = games_df['OREB'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_DREB'] = games_df['DREB'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_REB'] = games_df['REB'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_AST'] = games_df['AST'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_TOV'] = games_df['TOV'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_STL'] = games_df['STL'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_BLK'] = games_df['BLK'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_PF'] = games_df['PF'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_PTS'] = games_df['PTS'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_PM'] = games_df['PLUS_MINUS'].iloc[i-last_n_games:i].sum() / last_n_games
+        games_df.loc[i, 'PLAYER_MIN'] = games_df['MIN'].iloc[i-last_n_games:i].sum() / last_n_games
+    else:
+      games_df.loc[i, 'PLAYER_GAME_NUMBER'] = 1
+      player_index = i
+
+    if (games_df.loc[i, 'PLAYER_FGA'] == 0):
+            games_df.loc[i, 'PLAYER_FG_PCT'] = 0
+    else:
+      games_df.loc[i, 'PLAYER_FG_PCT'] = games_df.loc[i, 'PLAYER_FGM'] / games_df.loc[i, 'PLAYER_FGA']
+
+    if (games_df.loc[i, 'PLAYER_FG3A'] == 0):
+      games_df.loc[i, 'PLAYER_FG3_PCT'] = 0
+    else:
+      games_df.loc[i, 'PLAYER_FG3_PCT'] = games_df.loc[i, 'PLAYER_FG3M'] / games_df.loc[i, 'PLAYER_FG3A']
+
+    if (games_df.loc[i, 'PLAYER_FTA'] == 0):
+      games_df.loc[i, 'PLAYER_FT_PCT'] = 0
+    else:
+      games_df.loc[i, 'PLAYER_FT_PCT'] = games_df.loc[i, 'PLAYER_FTM'] / games_df.loc[i, 'PLAYER_FTA']
+
+  games_df['PLAYER_PER'] = (games_df['PLAYER_FGM'] * 85.91 + games_df['PLAYER_STL'] * 53.897 + games_df['PLAYER_FG3M'] * 51.757 +  games_df['PLAYER_FTM'] * 46.845 + games_df['PLAYER_BLK'] * 39.19 + games_df['PLAYER_OREB'] * 39.19 + games_df['PLAYER_AST'] * 34.677 + games_df['PLAYER_DREB'] * 14.707 - games_df['PLAYER_PF'] * 17.174 - (games_df['PLAYER_FTA'] - games_df['PLAYER_FTM']) * 20.091 - (games_df['PLAYER_FGA'] - games_df['PLAYER_FGM']) * 39.19 - games_df['PLAYER_TOV'] * 53.897 ) / games_df['PLAYER_MIN'] 
+
+  games_df['PLAYER_PER'] = games_df['PLAYER_PER'].fillna(0)
+
+  return games_df
+
+start_year = '2021'
+end_year = '2022'
+
+years = start_year + '-' + end_year
+
+print('getting games')
+games_df = get_games(start_year=int(start_year))
+print('adding player stats')
 player_df = get_player_stats(df=games_df)
+player_df.to_excel(f'nba_games_{years}.xlsx')
 
 
