@@ -69,6 +69,111 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
     games_df['OPP_PF'] = np.nan
     games_df['OPP_PTS'] = np.nan
     games_df['OPP_PM'] = np.nan
+
+    games_df['OPPONENT_FGM'] = 0
+    games_df['OPPONENT_FGA'] = 0
+    games_df['OPPONENT_FG_PCT'] = 0
+    games_df['OPPONENT_FG3M'] = 0
+    games_df['OPPONENT_FG3A'] = 0
+    games_df['OPPONENT_FG3_PCT'] = 0
+    games_df['OPPONENT_FTM'] = 0
+    games_df['OPPONENT_FTA'] = 0
+    games_df['OPPONENT_FT_PCT'] = 0
+    games_df['OPPONENT_OREB'] = 0
+    games_df['OPPONENT_DREB'] = 0
+    games_df['OPPONENT_REB'] = 0
+    games_df['OPPONENT_AST'] = 0
+    games_df['OPPONENT_TOV'] = 0
+    games_df['OPPONENT_STL'] = 0
+    games_df['OPPONENT_BLK'] = 0
+    games_df['OPPONENT_PF'] = 0
+    games_df['OPPONENT_PTS'] = 0
+    games_df['OPPONENT_PM'] = 0
+
+    games_df['TEAM_OPP_FGM'] = 0
+    games_df['TEAM_OPP_FGA'] = 0
+    games_df['TEAM_OPP_FG_PCT'] = 0
+    games_df['TEAM_OPP_FG3M'] = 0
+    games_df['TEAM_OPP_FG3A'] = 0
+    games_df['TEAM_OPP_FG3_PCT'] = 0
+    games_df['TEAM_OPP_FTM'] = 0
+    games_df['TEAM_OPP_FTA'] = 0
+    games_df['TEAM_OPP_FT_PCT'] = 0
+    games_df['TEAM_OPP_OREB'] = 0
+    games_df['TEAM_OPP_DREB'] = 0
+    games_df['TEAM_OPP_REB'] = 0
+    games_df['TEAM_OPP_AST'] = 0
+    games_df['TEAM_OPP_TOV'] = 0
+    games_df['TEAM_OPP_STL'] = 0
+    games_df['TEAM_OPP_BLK'] = 0
+    games_df['TEAM_OPP_PF'] = 0
+    games_df['TEAM_OPP_PTS'] = 0
+    games_df['TEAM_OPP_PM'] = 0
+
+    games_df['OPP_OPP_FGM'] = 0
+    games_df['OPP_OPP_FGA'] = 0
+    games_df['OPP_OPP_FG_PCT'] = 0
+    games_df['OPP_OPP_FG3M'] = 0
+    games_df['OPP_OPP_FG3A'] = 0
+    games_df['OPP_OPP_FG3_PCT'] = 0
+    games_df['OPP_OPP_FTM'] = 0
+    games_df['OPP_OPP_FTA'] = 0
+    games_df['OPP_OPP_FT_PCT'] = 0
+    games_df['OPP_OPP_OREB'] = 0
+    games_df['OPP_OPP_DREB'] = 0
+    games_df['OPP_OPP_REB'] = 0
+    games_df['OPP_OPP_AST'] = 0
+    games_df['OPP_OPP_TOV'] = 0
+    games_df['OPP_OPP_STL'] = 0
+    games_df['OPP_OPP_BLK'] = 0
+    games_df['OPP_OPP_PF'] = 0
+    games_df['OPP_OPP_PTS'] = 0
+    games_df['OPP_OPP_PM'] = 0
+
+    games_df = games_df.sort_values(by=['SEASON_ID', 'GAME_ID', 'TEAM_HOME'])
+    games_df = games_df.reset_index(drop=True)
+
+    for i in range(len(games_df)):
+      if (games_df.loc[i, 'TEAM_HOME'] == True):
+        games_df.loc[i, 'OPPONENT_FGM'] = games_df.loc[i-1, 'FGM']
+        games_df.loc[i, 'OPPONENT_FGA'] = games_df.loc[i-1, 'FGA']
+        games_df.loc[i, 'OPPONENT_FG_PCT'] = games_df.loc[i-1, 'FG_PCT']
+        games_df.loc[i, 'OPPONENT_FG3M'] = games_df.loc[i-1, 'FG3M']
+        games_df.loc[i, 'OPPONENT_FG3A'] = games_df.loc[i-1, 'FG3A']
+        games_df.loc[i, 'OPPONENT_FG3_PCT'] = games_df.loc[i-1, 'FG3_PCT']
+        games_df.loc[i, 'OPPONENT_FTM'] = games_df.loc[i-1, 'FTM']
+        games_df.loc[i, 'OPPONENT_FTA'] = games_df.loc[i-1, 'FTA']
+        games_df.loc[i, 'OPPONENT_FT_PCT'] = games_df.loc[i-1, 'FT_PCT']
+        games_df.loc[i, 'OPPONENT_OREB'] = games_df.loc[i-1, 'OREB']
+        games_df.loc[i, 'OPPONENT_DREB'] = games_df.loc[i-1, 'DREB']
+        games_df.loc[i, 'OPPONENT_REB'] = games_df.loc[i-1, 'REB']
+        games_df.loc[i, 'OPPONENT_AST'] = games_df.loc[i-1, 'AST']
+        games_df.loc[i, 'OPPONENT_TOV'] = games_df.loc[i-1, 'TOV']
+        games_df.loc[i, 'OPPONENT_STL'] = games_df.loc[i-1, 'STL']
+        games_df.loc[i, 'OPPONENT_BLK'] = games_df.loc[i-1, 'BLK']
+        games_df.loc[i, 'OPPONENT_PF'] = games_df.loc[i-1, 'PF']
+        games_df.loc[i, 'OPPONENT_PTS'] = games_df.loc[i-1, 'PTS']
+        games_df.loc[i, 'OPPONENT_PM'] = games_df.loc[i-1, 'PLUS_MINUS']
+      else:
+        games_df.loc[i, 'OPPONENT_FGM'] = games_df.loc[i+1, 'FGM']
+        games_df.loc[i, 'OPPONENT_FGA'] = games_df.loc[i+1, 'FGA']
+        games_df.loc[i, 'OPPONENT_FG_PCT'] = games_df.loc[i+1, 'FG_PCT']
+        games_df.loc[i, 'OPPONENT_FG3M'] = games_df.loc[i+1, 'FG3M']
+        games_df.loc[i, 'OPPONENT_FG3A'] = games_df.loc[i+1, 'FG3A']
+        games_df.loc[i, 'OPPONENT_FG3_PCT'] = games_df.loc[i+1, 'FG3_PCT']
+        games_df.loc[i, 'OPPONENT_FTM'] = games_df.loc[i+1, 'FTM']
+        games_df.loc[i, 'OPPONENT_FTA'] = games_df.loc[i+1, 'FTA']
+        games_df.loc[i, 'OPPONENT_FT_PCT'] = games_df.loc[i+1, 'FT_PCT']
+        games_df.loc[i, 'OPPONENT_OREB'] = games_df.loc[i+1, 'OREB']
+        games_df.loc[i, 'OPPONENT_DREB'] = games_df.loc[i+1, 'DREB']
+        games_df.loc[i, 'OPPONENT_REB'] = games_df.loc[i+1, 'REB']
+        games_df.loc[i, 'OPPONENT_AST'] = games_df.loc[i+1, 'AST']
+        games_df.loc[i, 'OPPONENT_TOV'] = games_df.loc[i+1, 'TOV']
+        games_df.loc[i, 'OPPONENT_STL'] = games_df.loc[i+1, 'STL']
+        games_df.loc[i, 'OPPONENT_BLK'] = games_df.loc[i+1, 'BLK']
+        games_df.loc[i, 'OPPONENT_PF'] = games_df.loc[i+1, 'PF']
+        games_df.loc[i, 'OPPONENT_PTS'] = games_df.loc[i+1, 'PTS']
+        games_df.loc[i, 'OPPONENT_PM'] = games_df.loc[i+1, 'PLUS_MINUS']
     
     games_df = games_df.sort_values(by=['TEAM_NAME', 'GAME_DATE'])
     games_df = games_df.reset_index(drop=True)
@@ -95,6 +200,23 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
           games_df.loc[i, 'TEAM_PF'] = games_df['PF'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
           games_df.loc[i, 'TEAM_PTS'] = games_df['PTS'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
           games_df.loc[i, 'TEAM_PM'] = games_df['PLUS_MINUS'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+
+          games_df.loc[i, 'TEAM_OPP_FGM'] = games_df['OPPONENT_FGM'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_FGA'] = games_df['OPPONENT_FGA'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)          
+          games_df.loc[i, 'TEAM_OPP_FG3M'] = games_df['OPPONENT_FG3M'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_FG3A'] = games_df['OPPONENT_FG3A'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_FTM'] = games_df['OPPONENT_FTM'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_FTA'] = games_df['OPPONENT_FTA'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_OREB'] = games_df['OPPONENT_OREB'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_DREB'] = games_df['OPPONENT_DREB'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_REB'] = games_df['OPPONENT_REB'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_AST'] = games_df['OPPONENT_AST'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_TOV'] = games_df['OPPONENT_TOV'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_STL'] = games_df['OPPONENT_STL'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_BLK'] = games_df['OPPONENT_BLK'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_PF'] = games_df['OPPONENT_PF'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_PTS'] = games_df['OPPONENT_PTS'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
+          games_df.loc[i, 'TEAM_OPP_PM'] = games_df['OPPONENT_PM'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
         else:
           games_df.loc[i, 'TEAM_W_PCT'] = games_df['TEAM_WINS'].iloc[i-last_n_games:i].sum() / last_n_games
           games_df.loc[i, 'TEAM_FGM'] = games_df['FGM'].iloc[i-last_n_games:i].sum() / last_n_games
@@ -113,6 +235,23 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
           games_df.loc[i, 'TEAM_PF'] = games_df['PF'].iloc[i-last_n_games:i].sum() / last_n_games
           games_df.loc[i, 'TEAM_PTS'] = games_df['PTS'].iloc[i-last_n_games:i].sum() / last_n_games
           games_df.loc[i, 'TEAM_PM'] = games_df['PLUS_MINUS'].iloc[i-last_n_games:i].sum() / last_n_games
+
+          games_df.loc[i, 'TEAM_OPP_FGM'] = games_df['OPPONENT_FGM'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_FGA'] = games_df['OPPONENT_FGA'].iloc[i-last_n_games:i].sum() / last_n_games          
+          games_df.loc[i, 'TEAM_OPP_FG3M'] = games_df['OPPONENT_FG3M'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_FG3A'] = games_df['OPPONENT_FG3A'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_FTM'] = games_df['OPPONENT_FTM'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_FTA'] = games_df['OPPONENT_FTA'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_OREB'] = games_df['OPPONENT_OREB'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_DREB'] = games_df['OPPONENT_DREB'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_REB'] = games_df['OPPONENT_REB'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_AST'] = games_df['OPPONENT_AST'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_TOV'] = games_df['OPPONENT_TOV'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_STL'] = games_df['OPPONENT_STL'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_BLK'] = games_df['OPPONENT_BLK'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_PF'] = games_df['OPPONENT_PF'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_PTS'] = games_df['OPPONENT_PTS'].iloc[i-last_n_games:i].sum() / last_n_games
+          games_df.loc[i, 'TEAM_OPP_PM'] = games_df['OPPONENT_PM'].iloc[i-last_n_games:i].sum() / last_n_games
       else:
         games_df.loc[i, 'TEAM_GAME_NUMBER'] = 1
         team_index = i
@@ -131,6 +270,21 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
         games_df.loc[i, 'TEAM_FT_PCT'] = 0
       else:
         games_df.loc[i, 'TEAM_FT_PCT'] = games_df.loc[i, 'TEAM_FTM'] / games_df.loc[i, 'TEAM_FTA']
+
+      if(games_df.loc[i, 'TEAM_OPP_FGA'] == 0):
+        games_df.loc[i, 'TEAM_OPP_FG_PCT'] = 0
+      else:
+        games_df.loc[i, 'TEAM_OPP_FG_PCT'] = games_df.loc[i, 'TEAM_OPP_FGM'] / games_df.loc[i, 'TEAM_OPP_FGA']
+      
+      if(games_df.loc[i, 'TEAM_OPP_FG3A'] == 0):
+        games_df.loc[i, 'TEAM_OPP_FG3_PCT'] = 0
+      else:
+        games_df.loc[i, 'TEAM_OPP_FG3_PCT'] = games_df.loc[i, 'TEAM_OPP_FG3M'] / games_df.loc[i, 'TEAM_OPP_FG3A']
+      
+      if(games_df.loc[i, 'TEAM_OPP_FTA'] == 0):
+        games_df.loc[i, 'TEAM_OPP_FT_PCT'] = 0
+      else:
+        games_df.loc[i, 'TEAM_OPP_FT_PCT'] = games_df.loc[i, 'TEAM_OPP_FTM'] / games_df.loc[i, 'TEAM_OPP_FTA']
 
       current_date = datetime.strptime(games_df['GAME_DATE'].iloc[i][2:], '%y-%m-%d')
       previous_date = datetime.strptime(games_df['GAME_DATE'].iloc[i-1][2:], '%y-%m-%d')
@@ -181,6 +335,26 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
         games_df.loc[i, 'OPP_PF'] = games_df.loc[i-1, 'TEAM_PF']
         games_df.loc[i, 'OPP_PTS'] = games_df.loc[i-1, 'TEAM_PTS']
         games_df.loc[i, 'OPP_PM'] = games_df.loc[i-1, 'TEAM_PM']
+
+        games_df.loc[i, 'OPP_OPP_FGM'] = games_df.loc[i-1, 'TEAM_OPP_FGM']
+        games_df.loc[i, 'OPP_OPP_FGA'] = games_df.loc[i-1, 'TEAM_OPP_FGA']
+        games_df.loc[i, 'OPP_OPP_FG_PCT'] = games_df.loc[i-1, 'TEAM_OPP_FG_PCT']
+        games_df.loc[i, 'OPP_OPP_FG3M'] = games_df.loc[i-1, 'TEAM_OPP_FG3M']
+        games_df.loc[i, 'OPP_OPP_FG3A'] = games_df.loc[i-1, 'TEAM_OPP_FG3A']
+        games_df.loc[i, 'OPP_OPP_FG3_PCT'] = games_df.loc[i-1, 'TEAM_OPP_FG3_PCT']
+        games_df.loc[i, 'OPP_OPP_FTM'] = games_df.loc[i-1, 'TEAM_OPP_FTM']
+        games_df.loc[i, 'OPP_OPP_FTA'] = games_df.loc[i-1, 'TEAM_OPP_FTA']
+        games_df.loc[i, 'OPP_OPP_FT_PCT'] = games_df.loc[i-1, 'TEAM_OPP_FT_PCT']
+        games_df.loc[i, 'OPP_OPP_OREB'] = games_df.loc[i-1, 'TEAM_OPP_OREB']
+        games_df.loc[i, 'OPP_OPP_DREB'] = games_df.loc[i-1, 'TEAM_OPP_DREB']
+        games_df.loc[i, 'OPP_OPP_REB'] = games_df.loc[i-1, 'TEAM_OPP_REB']
+        games_df.loc[i, 'OPP_OPP_AST'] = games_df.loc[i-1, 'TEAM_OPP_AST']
+        games_df.loc[i, 'OPP_OPP_TOV'] = games_df.loc[i-1, 'TEAM_OPP_TOV']
+        games_df.loc[i, 'OPP_OPP_STL'] = games_df.loc[i-1, 'TEAM_OPP_STL']
+        games_df.loc[i, 'OPP_OPP_BLK'] = games_df.loc[i-1, 'TEAM_OPP_BLK']
+        games_df.loc[i, 'OPP_OPP_PF'] = games_df.loc[i-1, 'TEAM_OPP_PF']
+        games_df.loc[i, 'OPP_OPP_PTS'] = games_df.loc[i-1, 'TEAM_OPP_PTS']
+        games_df.loc[i, 'OPP_OPP_PM'] = games_df.loc[i-1, 'TEAM_OPP_PM']
       else:
         games_df.loc[i, 'OPPONENT_NAME'] = games_df.loc[i+1, 'TEAM_NAME']
         games_df.loc[i, 'OPPONENT_PTS'] = games_df.loc[i+1, 'TEAM_PTS']
@@ -209,7 +383,27 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
         games_df.loc[i, 'OPP_PF'] = games_df.loc[i+1, 'TEAM_PF']
         games_df.loc[i, 'OPP_PTS'] = games_df.loc[i+1, 'TEAM_PTS']
         games_df.loc[i, 'OPP_PM'] = games_df.loc[i+1, 'TEAM_PM']
-      
+
+        games_df.loc[i, 'OPP_OPP_FGM'] = games_df.loc[i+1, 'TEAM_OPP_FGM']
+        games_df.loc[i, 'OPP_OPP_FGA'] = games_df.loc[i+1, 'TEAM_OPP_FGA']
+        games_df.loc[i, 'OPP_OPP_FG_PCT'] = games_df.loc[i+1, 'TEAM_OPP_FG_PCT']
+        games_df.loc[i, 'OPP_OPP_FG3M'] = games_df.loc[i+1, 'TEAM_OPP_FG3M']
+        games_df.loc[i, 'OPP_OPP_FG3A'] = games_df.loc[i+1, 'TEAM_OPP_FG3A']
+        games_df.loc[i, 'OPP_OPP_FG3_PCT'] = games_df.loc[i+1, 'TEAM_OPP_FG3_PCT']
+        games_df.loc[i, 'OPP_OPP_FTM'] = games_df.loc[i+1, 'TEAM_OPP_FTM']
+        games_df.loc[i, 'OPP_OPP_FTA'] = games_df.loc[i+1, 'TEAM_OPP_FTA']
+        games_df.loc[i, 'OPP_OPP_FT_PCT'] = games_df.loc[i+1, 'TEAM_OPP_FT_PCT']
+        games_df.loc[i, 'OPP_OPP_OREB'] = games_df.loc[i+1, 'TEAM_OPP_OREB']
+        games_df.loc[i, 'OPP_OPP_DREB'] = games_df.loc[i+1, 'TEAM_OPP_DREB']
+        games_df.loc[i, 'OPP_OPP_REB'] = games_df.loc[i+1, 'TEAM_OPP_REB']
+        games_df.loc[i, 'OPP_OPP_AST'] = games_df.loc[i+1, 'TEAM_OPP_AST']
+        games_df.loc[i, 'OPP_OPP_TOV'] = games_df.loc[i+1, 'TEAM_OPP_TOV']
+        games_df.loc[i, 'OPP_OPP_STL'] = games_df.loc[i+1, 'TEAM_OPP_STL']
+        games_df.loc[i, 'OPP_OPP_BLK'] = games_df.loc[i+1, 'TEAM_OPP_BLK']
+        games_df.loc[i, 'OPP_OPP_PF'] = games_df.loc[i+1, 'TEAM_OPP_PF']
+        games_df.loc[i, 'OPP_OPP_PTS'] = games_df.loc[i+1, 'TEAM_OPP_PTS']
+        games_df.loc[i, 'OPP_OPP_PM'] = games_df.loc[i+1, 'TEAM_OPP_PM']
+
     df = pd.concat([df, games_df])
   
   df = df.drop(columns=['PTS', 'FGM', 'FGA', 'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB', 'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PLUS_MINUS', 'OPPONENT_PTS','OPP_WINS'])
