@@ -1,7 +1,7 @@
-from venv import create
 import pandas as pd
 import numpy as np
 from nba_api.stats.endpoints import leaguegamelog, leaguedashplayerstats, playergamelogs
+from datetime import datetime, timedelta
 
 def transpose_df_to_dict(df):
   return df.T.to_dict().values()
@@ -18,6 +18,10 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
     games_df['TEAM_HOME'] = games_df['MATCHUP'].str.contains('vs.', regex=False)*1
     games_df['TEAM_GAME_NUMBER'] = 1
     games_df['TEAM_WINS'] *= 1
+    games_df['TEAM_LOSES'] = abs(games_df['TEAM_WINS'] - 1)
+    games_df['TEAM_B2B'] = 0
+    games_df['TEAM_WIN_STREAK'] = 0
+    games_df['TEAM_LOSE_STREAK'] = 0
     games_df['TEAM_W_PCT'] = 0
     games_df['TEAM_FGM'] = 0
     games_df['TEAM_FGA'] = 0
@@ -42,6 +46,9 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
     games_df['OPPONENT_PTS'] = np.nan
     games_df['OPPONENT_ID'] = np.nan
     games_df['OPP_WINS'] = np.nan
+    games_df['OPP_B2B'] = 0
+    games_df['OPP_WIN_STREAK'] = 0
+    games_df['OPP_LOSE_STREAK'] = 0
     games_df['OPP_W_PCT'] = np.nan
     games_df['OPP_FGM'] = np.nan
     games_df['OPP_FGA'] = np.nan
@@ -70,7 +77,6 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
     for i in range(1, len(games_df)):
       if (games_df['TEAM_NAME'][i] == games_df['TEAM_NAME'][i-1]):
         games_df.loc[i, 'TEAM_GAME_NUMBER'] = games_df.loc[i-1, 'TEAM_GAME_NUMBER'] + 1
-
         if games_df['TEAM_GAME_NUMBER'][i] <= last_n_games:
           games_df.loc[i, 'TEAM_W_PCT'] = games_df['TEAM_WINS'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
           games_df.loc[i, 'TEAM_FGM'] = games_df['FGM'].iloc[team_index:i].sum() / (games_df['TEAM_GAME_NUMBER'][i] - 1)
@@ -126,6 +132,23 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
       else:
         games_df.loc[i, 'TEAM_FT_PCT'] = games_df.loc[i, 'TEAM_FTM'] / games_df.loc[i, 'TEAM_FTA']
 
+      current_date = datetime.strptime(games_df['GAME_DATE'].iloc[i][2:], '%y-%m-%d')
+      previous_date = datetime.strptime(games_df['GAME_DATE'].iloc[i-1][2:], '%y-%m-%d')
+      next_date = previous_date + timedelta(days=1)
+      if(current_date == next_date):
+        games_df.loc[i, 'TEAM_B2B'] = 1
+      
+      if(games_df['TEAM_WINS'].iloc[i-1] == 1):
+        games_df.loc[i, 'TEAM_WIN_STREAK'] = games_df.loc[i - 1, 'TEAM_WIN_STREAK'] + games_df.loc[i - 1, 'TEAM_WINS']
+      else:
+        games_df.loc[i, 'TEAM_WIN_STREAK'] = 0
+
+      if(games_df['TEAM_LOSES'].iloc[i-1] == 1):
+        games_df.loc[i, 'TEAM_LOSE_STREAK'] = games_df.loc[i - 1, 'TEAM_LOSE_STREAK'] + games_df.loc[i - 1, 'TEAM_LOSES']
+      else:
+        games_df.loc[i, 'TEAM_LOSE_STREAK'] = 0
+
+
     games_df = games_df.sort_values(by=['SEASON_ID', 'GAME_ID', 'TEAM_HOME'])
     games_df = games_df.reset_index(drop=True)
 
@@ -135,6 +158,9 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
         games_df.loc[i, 'OPPONENT_PTS'] = games_df.loc[i-1, 'TEAM_PTS']
         games_df.loc[i, 'OPPONENT_ID'] = games_df.loc[i-1, 'TEAM_ID']
         games_df.loc[i, 'OPP_WINS'] = games_df.loc[i-1, 'TEAM_WINS']
+        games_df.loc[i, 'OPP_B2B'] = games_df.loc[i-1, 'TEAM_B2B']
+        games_df.loc[i, 'OPP_WIN_STREAK'] = games_df.loc[i-1, 'TEAM_WIN_STREAK']
+        games_df.loc[i, 'OPP_LOSE_STREAK'] = games_df.loc[i-1, 'TEAM_LOSE_STREAK']
         games_df.loc[i, 'OPP_W_PCT'] = games_df.loc[i-1, 'TEAM_W_PCT']
         games_df.loc[i, 'OPP_FGM'] = games_df.loc[i-1, 'TEAM_FGM']
         games_df.loc[i, 'OPP_FGA'] = games_df.loc[i-1, 'TEAM_FGA']
@@ -160,6 +186,9 @@ def get_games(start_year=2012, end_year=2022, last_n_games=10):
         games_df.loc[i, 'OPPONENT_PTS'] = games_df.loc[i+1, 'TEAM_PTS']
         games_df.loc[i, 'OPPONENT_ID'] = games_df.loc[i+1, 'TEAM_ID']
         games_df.loc[i, 'OPP_WINS'] = games_df.loc[i+1, 'TEAM_WINS']
+        games_df.loc[i, 'OPP_B2B'] = games_df.loc[i+1, 'TEAM_B2B']
+        games_df.loc[i, 'OPP_WIN_STREAK'] = games_df.loc[i+1, 'TEAM_WIN_STREAK']
+        games_df.loc[i, 'OPP_LOSE_STREAK'] = games_df.loc[i+1, 'TEAM_LOSE_STREAK']
         games_df.loc[i, 'OPP_W_PCT'] = games_df.loc[i+1, 'TEAM_W_PCT']
         games_df.loc[i, 'OPP_FGM'] = games_df.loc[i+1, 'TEAM_FGM']
         games_df.loc[i, 'OPP_FGA'] = games_df.loc[i+1, 'TEAM_FGA']
