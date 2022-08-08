@@ -453,6 +453,10 @@ def get_player_stats(df):
   df['TEAM PLAYER 2'] = False
   df['TEAM PLAYER 3'] = False
 
+  df['OPP PLAYER 1'] = np.nan
+  df['OPP PLAYER 2'] = np.nan
+  df['OPP PLAYER 3'] = np.nan
+
   df['TEAM PLAYER NAME 1'] = ''
   df['TEAM PLAYER NAME 2'] = ''
   df['TEAM PLAYER NAME 3'] = ''
@@ -477,7 +481,23 @@ def get_player_stats(df):
       df.loc[i, f'TEAM PLAYER NAME {j + 1}'] = player_name
       if (player_name in team_game_players_df['PLAYER_NAME'].values):
         df.loc[i, f'TEAM PLAYER {j + 1}'] = True
-  return df
+
+  df = df.sort_values(by=['SEASON_ID', 'GAME_ID', 'TEAM_HOME'])
+  df = df.reset_index(drop=True)
+
+  print(df)
+
+  for k in range(len(df)):
+    if (df.loc[k, 'TEAM_HOME'] == True):
+      df.loc[k, 'OPP PLAYER 1'] = df.loc[k-1, 'TEAM PLAYER 1']
+      df.loc[k, 'OPP PLAYER 2'] = df.loc[k-1, 'TEAM PLAYER 2']
+      df.loc[k, 'OPP PLAYER 3'] = df.loc[k-1, 'TEAM PLAYER 3']
+    else:
+      df.loc[k, 'OPP PLAYER 1'] = df.loc[k+1, 'TEAM PLAYER 1']
+      df.loc[k, 'OPP PLAYER 2'] = df.loc[k+1, 'TEAM PLAYER 2']
+      df.loc[k, 'OPP PLAYER 3'] = df.loc[k+1, 'TEAM PLAYER 3']
+
+  return df.reset_index(drop=True).sort_values(by=['SEASON_ID', 'TEAM_NAME', 'GAME_DATE'])
 
 def create_player_data(games_df, last_n_games):
   games_df = games_df.sort_values(by=['TEAM_NAME', 'PLAYER_NAME', 'GAME_DATE'])
